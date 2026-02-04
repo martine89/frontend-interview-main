@@ -1,6 +1,7 @@
 'use client'
 
-import { gql, useQuery } from '@apollo/client'
+import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client/react'
 import ExampleProductList from './components/ExampleProductList'
 
 const PRODUCTS_QUERY = gql`

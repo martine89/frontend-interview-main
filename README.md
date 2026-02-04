@@ -92,7 +92,7 @@ In this repository you can find 2 folders:
   ### Usage
 
   ```sh
-  npm run dev:client
+  npm run dev:clienta
   ```
 
   This will start a NextJs app at http://localhost:3000/. In it you will find a simple example of a client component that fetches data and displays the first 10 products.
