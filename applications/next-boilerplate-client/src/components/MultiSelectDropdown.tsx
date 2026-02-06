@@ -12,9 +12,6 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MultiSelectDropdownProps } from '../app/app.types'
 
-const CHECKBOX_CLASS =
-  'pointer-events-none data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600'
-
 function Option({
   checked,
   label,
@@ -34,14 +31,14 @@ function Option({
       aria-selected={checked}
       tabIndex={0}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent focus:bg-accent outline-none',
+        'flex items-center gap-4 px-4 py-2 cursor-pointer hover:bg-accent focus:bg-accent outline-none font-medium',
         className,
       )}
       onClick={onClick}
       onKeyDown={onKeyDown}
     >
-      <Checkbox checked={checked} tabIndex={-1} className={CHECKBOX_CLASS} />
-      <span className="text-sm">{label}</span>
+      <Checkbox checked={checked} tabIndex={-1} />
+      <span>{label}</span>
     </div>
   )
 }
@@ -130,46 +127,38 @@ export default function MultiSelectDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'flex items-center justify-between w-full sm:w-[280px] px-3 py-2 text-sm border rounded-md bg-white cursor-pointer',
-            open
-              ? 'border-teal-600 text-teal-700 ring-1 ring-teal-600'
-              : 'border-input text-foreground',
+            'flex items-center justify-between w-full sm:w-[370px] h-[42px] px-4 py-[10px] leading-5 font-medium border rounded-md bg-white cursor-pointer',
+            open ? 'border-[#14645A] text-[#14645A]' : 'border-input',
           )}
         >
-          <span
-            className={cn(
-              appliedSelection.size === 0 && !open && 'text-muted-foreground',
-            )}
-          >
-            {selectLabel}
-          </span>
+          <span>{selectLabel}</span>
           {open ? (
-            <ChevronUp className="h-4 w-4 shrink-0 opacity-50" />
+            <ChevronUp className="h-4 w-4 shrink-0 text-[#14645A]" />
           ) : (
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] sm:w-[280px] p-0"
+        className="w-[var(--radix-popover-trigger-width)] sm:w-[370px] border-none shadow-dropdown p-0"
         align="start"
-        onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="flex items-center gap-2 px-3 py-2 border-b">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-4 px-4 py-2 border-b">
+          <Search className="h-4 w-4 shrink-0" />
           <input
             type="text"
             placeholder="Search"
             aria-label="Search options"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent outline-none placeholder:text-medium-gray font-medium"
           />
         </div>
 
         <div
           role="listbox"
           aria-label={placeholder}
+          style={{ scrollbarWidth: 'thin' }}
           className="max-h-[200px] overflow-y-auto"
         >
           <Option
@@ -177,7 +166,7 @@ export default function MultiSelectDropdown({
             label="Select all"
             onClick={handleSelectAll}
             onKeyDown={handleOptionKeyDown(handleSelectAll)}
-            className="border-b"
+            className="border-b h-10 box-border"
           />
 
           {filteredOptions.map((option) => (
@@ -197,15 +186,11 @@ export default function MultiSelectDropdown({
           )}
         </div>
 
-        <div className="flex items-center justify-between px-3 py-2 border-t">
+        <div className="flex items-center justify-between px-4 py-2 border-t">
           <Button variant="ghost" size="sm" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button
-            size="sm"
-            onClick={handleApply}
-            className="bg-teal-600 hover:bg-teal-700 text-white"
-          >
+          <Button size="sm" onClick={handleApply}>
             Apply
           </Button>
         </div>
