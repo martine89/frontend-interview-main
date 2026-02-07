@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useCallback, KeyboardEvent } from 'react'
-import { ChevronDown, ChevronUp, Search } from 'lucide-react'
+import { useState, useCallback, KeyboardEvent, useMemo, useEffect } from 'react'
+import { ChevronDown, ChevronUp, Search, LoaderCircle } from 'lucide-react'
 import {
   Popover,
   PopoverContent,
@@ -11,6 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MultiSelectDropdownProps } from '../app/app.types'
+import { debounce } from 'lodash'
+import { useInView } from 'react-intersection-observer'
 
 function Option({
   checked,
@@ -48,6 +50,10 @@ export default function MultiSelectDropdown({
   placeholder = 'Select items',
   itemLabel = { singular: 'item', plural: 'items' },
   onChange,
+  onLoadMore,
+  hasMore,
+  loadingMore,
+  onSearch,
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -56,33 +62,37 @@ export default function MultiSelectDropdown({
   )
   const [draftSelection, setDraftSelection] = useState<Set<string>>(new Set())
 
-  const filteredOptions = useMemo(() => {
-    if (!searchTerm.trim()) return options
-    const term = searchTerm.toLowerCase()
-    return options.filter((opt) => opt.name.toLowerCase().includes(term))
-  }, [options, searchTerm])
+  const { ref, inView } = useInView()
 
-  const allFilteredSelected = useMemo(() => {
-    return (
-      filteredOptions.length > 0 &&
-      filteredOptions.every((opt) => draftSelection.has(opt.id))
-    )
-  }, [filteredOptions, draftSelection])
+  useEffect(() => {
+    if (options && inView && hasMore && !loadingMore) {
+      onLoadMore()
+    }
+  }, [onLoadMore, inView])
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       setDraftSelection(new Set(appliedSelection))
     }
     setSearchTerm('')
+    debouncedOnSearch('')
     setOpen(isOpen)
   }
 
+  const allOptionsSelected = useMemo(() => {
+    return (
+      options &&
+      options.length > 0 &&
+      options.every((opt) => draftSelection.has(opt.id))
+    )
+  }, [options, draftSelection])
+
   const handleSelectAll = () => {
     const next = new Set(draftSelection)
-    if (allFilteredSelected) {
-      filteredOptions.forEach((opt) => next.delete(opt.id))
-    } else {
-      filteredOptions.forEach((opt) => next.add(opt.id))
+    if (options && allOptionsSelected) {
+      options.forEach((opt) => next.delete(opt.id))
+    } else if (options) {
+      options.forEach((opt) => next.add(opt.id))
     }
     setDraftSelection(next)
   }
@@ -122,6 +132,11 @@ export default function MultiSelectDropdown({
       ? `${appliedSelection.size} ${appliedSelection.size === 1 ? itemLabel.singular : itemLabel.plural} selected`
       : placeholder
 
+  const debouncedOnSearch = useMemo(
+    () => debounce((value: string) => onSearch(value), 500),
+    [onSearch],
+  )
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -150,7 +165,10 @@ export default function MultiSelectDropdown({
             placeholder="Search"
             aria-label="Search options"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              debouncedOnSearch(e.target.value)
+            }}
             className="flex-1 bg-transparent outline-none placeholder:text-medium-gray font-medium"
           />
         </div>
@@ -162,14 +180,19 @@ export default function MultiSelectDropdown({
           className="max-h-[200px] overflow-y-auto"
         >
           <Option
-            checked={allFilteredSelected}
+            checked={
+              (options &&
+                options.length > 0 &&
+                options?.every((opt) => draftSelection.has(opt.id))) ||
+              false
+            }
             label="Select all"
             onClick={handleSelectAll}
             onKeyDown={handleOptionKeyDown(handleSelectAll)}
             className="border-b h-10 box-border"
           />
 
-          {filteredOptions.map((option) => (
+          {options?.map((option) => (
             <Option
               key={option.id}
               checked={draftSelection.has(option.id)}
@@ -179,8 +202,15 @@ export default function MultiSelectDropdown({
             />
           ))}
 
-          {filteredOptions.length === 0 && (
-            <div className="px-3 py-2 text-sm text-muted-foreground">
+          {loadingMore && (
+            <div className="h-10 w-full flex items-center justify-center">
+              <LoaderCircle className="animate-spin" />
+            </div>
+          )}
+          <div ref={ref}></div>
+
+          {(!options || options.length === 0) && (
+            <div className="h-10 px-3 py-2 text-sm flex items-center text-muted-foreground">
               No results found
             </div>
           )}

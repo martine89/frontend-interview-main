@@ -21,8 +21,12 @@ interface MultiSelectOption {
 }
 
 export interface MultiSelectDropdownProps {
-  options: MultiSelectOption[]
+  options?: MultiSelectOption[]
   placeholder?: string
   itemLabel?: { singular: string; plural: string }
   onChange?: (selectedIds: string[]) => void
+  onLoadMore: () => void
+  hasMore: boolean
+  loadingMore: boolean
+  onSearch: (term: string) => void
 }
