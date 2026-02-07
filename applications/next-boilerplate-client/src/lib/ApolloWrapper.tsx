@@ -25,6 +25,15 @@ function makeClient() {
                 }
               },
             },
+            users: {
+              keyArgs: ['searchTerm'],
+              merge(existing, incoming) {
+                return {
+                  ...incoming,
+                  nodes: [...(existing?.nodes || []), ...incoming.nodes],
+                }
+              },
+            },
           },
         },
       },

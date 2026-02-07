@@ -46,33 +46,40 @@ function Option({
 }
 
 export default function MultiSelectDropdown({
-  options,
+  options = [],
   placeholder = 'Select items',
   itemLabel = { singular: 'item', plural: 'items' },
-  onChange,
   onLoadMore,
   hasMore,
   loadingMore,
   onSearch,
+  onSelection,
 }: MultiSelectDropdownProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [appliedSelection, setAppliedSelection] = useState<Set<string>>(
-    new Set(),
-  )
-  const [draftSelection, setDraftSelection] = useState<Set<string>>(new Set())
+  const [appliedSelection, setAppliedSelection] = useState<string[]>([])
+  const [draftSelection, setDraftSelection] = useState<string[]>([])
 
   const { ref, inView } = useInView()
 
+  const debouncedOnSearch = useMemo(
+    () => debounce((value: string) => onSearch(value), 500),
+    [onSearch],
+  )
+
   useEffect(() => {
-    if (options && inView && hasMore && !loadingMore) {
+    return () => debouncedOnSearch.cancel()
+  }, [debouncedOnSearch])
+
+  useEffect(() => {
+    if (inView && hasMore && !loadingMore) {
       onLoadMore()
     }
-  }, [onLoadMore, inView])
+  }, [onLoadMore, inView, hasMore, loadingMore])
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
-      setDraftSelection(new Set(appliedSelection))
+      setDraftSelection([...appliedSelection])
     }
     setSearchTerm('')
     debouncedOnSearch('')
@@ -81,36 +88,31 @@ export default function MultiSelectDropdown({
 
   const allOptionsSelected = useMemo(() => {
     return (
-      options &&
       options.length > 0 &&
-      options.every((opt) => draftSelection.has(opt.id))
+      options.every((opt) => draftSelection.includes(opt.id))
     )
   }, [options, draftSelection])
 
   const handleSelectAll = () => {
-    const next = new Set(draftSelection)
-    if (options && allOptionsSelected) {
-      options.forEach((opt) => next.delete(opt.id))
-    } else if (options) {
-      options.forEach((opt) => next.add(opt.id))
+    if (allOptionsSelected) {
+      setDraftSelection([])
+    } else {
+      setDraftSelection(options.map((opt) => opt.id))
     }
-    setDraftSelection(next)
   }
 
   const handleToggle = (id: string) => {
-    const next = new Set(draftSelection)
-    if (next.has(id)) {
-      next.delete(id)
+    if (draftSelection.includes(id)) {
+      setDraftSelection(draftSelection.filter((x) => x !== id))
     } else {
-      next.add(id)
+      setDraftSelection([...draftSelection, id])
     }
-    setDraftSelection(next)
   }
 
   const handleApply = () => {
-    setAppliedSelection(new Set(draftSelection))
-    onChange?.(Array.from(draftSelection))
+    setAppliedSelection([...draftSelection])
     setOpen(false)
+    onSelection(draftSelection)
   }
 
   const handleCancel = () => {
@@ -128,14 +130,9 @@ export default function MultiSelectDropdown({
   )
 
   const selectLabel =
-    appliedSelection.size > 0
-      ? `${appliedSelection.size} ${appliedSelection.size === 1 ? itemLabel.singular : itemLabel.plural} selected`
+    appliedSelection.length > 0
+      ? `${appliedSelection.length} ${appliedSelection.length === 1 ? itemLabel.singular : itemLabel.plural} selected`
       : placeholder
-
-  const debouncedOnSearch = useMemo(
-    () => debounce((value: string) => onSearch(value), 500),
-    [onSearch],
-  )
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -143,12 +140,12 @@ export default function MultiSelectDropdown({
         <button
           className={cn(
             'flex items-center justify-between w-full sm:w-[370px] h-[42px] px-4 py-[10px] leading-5 font-medium border rounded-md bg-white cursor-pointer',
-            open ? 'border-[#14645A] text-[#14645A]' : 'border-input',
+            open ? 'border-focused text-focused' : 'border-input',
           )}
         >
           <span>{selectLabel}</span>
           {open ? (
-            <ChevronUp className="h-4 w-4 shrink-0 text-[#14645A]" />
+            <ChevronUp className="h-4 w-4 shrink-0 text-focused" />
           ) : (
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
           )}
@@ -180,22 +177,17 @@ export default function MultiSelectDropdown({
           className="max-h-[200px] overflow-y-auto"
         >
           <Option
-            checked={
-              (options &&
-                options.length > 0 &&
-                options?.every((opt) => draftSelection.has(opt.id))) ||
-              false
-            }
+            checked={allOptionsSelected}
             label="Select all"
             onClick={handleSelectAll}
             onKeyDown={handleOptionKeyDown(handleSelectAll)}
             className="border-b h-10 box-border"
           />
 
-          {options?.map((option) => (
+          {options.map((option) => (
             <Option
               key={option.id}
-              checked={draftSelection.has(option.id)}
+              checked={draftSelection.includes(option.id)}
               label={option.name}
               onClick={() => handleToggle(option.id)}
               onKeyDown={handleOptionKeyDown(() => handleToggle(option.id))}
@@ -209,7 +201,7 @@ export default function MultiSelectDropdown({
           )}
           <div ref={ref}></div>
 
-          {(!options || options.length === 0) && (
+          {options.length === 0 && (
             <div className="h-10 px-3 py-2 text-sm flex items-center text-muted-foreground">
               No results found
             </div>
