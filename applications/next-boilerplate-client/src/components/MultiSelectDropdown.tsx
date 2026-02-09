@@ -139,7 +139,7 @@ export default function MultiSelectDropdown({
       <PopoverTrigger asChild>
         <button
           className={cn(
-            'flex items-center justify-between w-full sm:w-[370px] h-[42px] px-4 py-[10px] leading-5 font-medium border rounded-md bg-white cursor-pointer',
+            'flex items-center justify-between max-w-[370px] w-full h-[42px] px-4 py-[10px] leading-5 font-medium border rounded-md bg-white cursor-pointer',
             open ? 'border-focused text-focused' : 'border-input',
           )}
         >
@@ -152,7 +152,7 @@ export default function MultiSelectDropdown({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] sm:w-[370px] border-none shadow-dropdown p-0"
+        className="w-[var(--radix-popover-trigger-width)] border-none shadow-dropdown p-0"
         align="start"
       >
         <div className="flex items-center gap-4 px-4 py-2 border-b">
@@ -201,7 +201,7 @@ export default function MultiSelectDropdown({
           )}
           <div ref={ref}></div>
 
-          {options.length === 0 && (
+          {options.length === 0 && !loadingMore && (
             <div className="h-10 px-3 py-2 text-sm flex items-center text-muted-foreground">
               No results found
             </div>

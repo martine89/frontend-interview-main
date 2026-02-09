@@ -182,11 +182,11 @@ export default function Home() {
   }
 
   return (
-    <div className="flex sm:items-center justify-center min-h-screen bg-gray-100">
-      <div className="flex flex-col gap-4 p-4 bg-white shadow-md rounded-md w-full sm:min-h-[480px] h-full sm:min-w-[584px] sm:h-auto sm:w-auto h-[780px]">
-        <div className="flex gap-2">
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold">Products</h1>
+    <div className="p-0 sm:p-8 bg-gray-100">
+      <div className="p-4 gap-2 bg-white shadow-md rounded-md mx-auto max-w-4xl">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <div className="flex flex-col w-full sm:w-[370px]">
+            <h2 className="mb-2 text-xl font-bold">Products</h2>
             <MultiSelectDropdown
               options={productsData?.products.nodes}
               placeholder="Select Product"
@@ -202,8 +202,8 @@ export default function Home() {
               }}
             />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold">Users</h1>
+          <div className="flex flex-col w-full sm:w-[370px]">
+            <h2 className="mb-2 text-xl font-bold">Users</h2>
             <MultiSelectDropdown
               options={userOptions}
               placeholder="Select User"
@@ -220,7 +220,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="flex flex-col gap-2 w-full col-span-2">
+        <div className="flex flex-col w-full">
           <h2 className="text-xl font-bold">Purchases</h2>
           {purchasesLoading && (
             <div className="flex items-center justify-center py-4">
@@ -231,16 +231,16 @@ export default function Home() {
             <p className="text-muted-foreground">No purchases found.</p>
           )}
           {purchasesData && purchasesData.purchases.nodes.length > 0 && (
-            <ul className="divide-y grow">
+            <ul className="divide-y">
               {purchasesData.purchases.nodes.map((purchase) => (
-                <li key={purchase.id} className="py-2 flex">
-                  <span className="font-medium w-1/3 grow">
+                <li key={purchase.id} className="py-2 gap-4 sm:gap-2 flex">
+                  <span className="font-medium w-full sm:w-3/6">
                     {purchase.product.name}
                   </span>
-                  <span className="text-muted-foreground w-1/3">
+                  <span className="text-muted-foreground w-full sm:w-2/6">
                     {purchase.user.firstName} {purchase.user.lastName}
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground w-full sm:w-1/6">
                     {new Date(purchase.date).toLocaleDateString()}
                   </span>
                 </li>
