@@ -82,7 +82,8 @@ export default function MultiSelectDropdown({
       setDraftSelection([...appliedSelection])
     }
     setSearchTerm('')
-    debouncedOnSearch('')
+    debouncedOnSearch.cancel()
+    onSearch('')
     setOpen(isOpen)
   }
 

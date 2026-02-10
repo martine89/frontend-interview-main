@@ -36,8 +36,8 @@ export interface ProductsQueryData {
 export interface Purchase {
   id: string
   date: string
-  user: User & { profilePictureUrl: string }
-  product: Product & { imageUrl: string }
+  user: User
+  product: Product
 }
 
 export interface PurchasesQueryData {
